@@ -3,10 +3,10 @@ const CHARS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789./\\|_-+=<>';
 
 // ── State ──────────────────────────────────────────────────────────
 let balanceCents = null;
-let lastSlug = null;
 let scrambleTimer = null;
 let isScrambling = false;
 let pollTimer = null;
+let wheelTimer = null;
 
 // ── Helpers ────────────────────────────────────────────────────────
 function formatBalance(cents) {
@@ -20,9 +20,8 @@ function randomizeStr(str) {
   }).join('');
 }
 
-function extractSlug(url) {
-  const match = url.match(/\/reels\/([^/?#]+)/);
-  return match ? match[1] : null;
+function isOnReels() {
+  return window.location.pathname.includes('/reels');
 }
 
 // ── Overlay DOM ────────────────────────────────────────────────────
@@ -241,6 +240,12 @@ async function deductReel(slug) {
   const { uuid } = await chrome.storage.local.get('uuid');
   if (!uuid) return;
 
+  // Optimistic update — reflect the charge immediately without waiting for server
+  if (balanceCents !== null) {
+    const optimistic = Math.max(balanceCents - 10, 0);
+    updateOverlay(optimistic, optimistic <= 0);
+  }
+
   try {
     const res = await fetch(`${BACKEND}/deduct`, {
       method: 'POST',
@@ -249,6 +254,7 @@ async function deductReel(slug) {
     });
     if (!res.ok) return;
     const { balance_cents, blocked } = await res.json();
+    // Sync with server's authoritative balance
     updateOverlay(balance_cents, blocked);
   } catch (err) {
     // Fail open — backend down must not block the user
@@ -268,29 +274,35 @@ async function fetchInitialBalance() {
   } catch (_) {}
 }
 
-// ── URL watcher ────────────────────────────────────────────────────
-function onUrlChange() {
-  const slug = extractSlug(window.location.href);
-  if (slug && slug !== lastSlug) {
-    lastSlug = slug;
-    deductReel(slug);
-  }
-}
+// ── Swipe / scroll detection ────────────────────────────────────────
+let touchStartY = 0;
 
-// Intercept history.pushState — Instagram's primary navigation method
-const _pushState = history.pushState.bind(history);
-history.pushState = function (...args) {
-  _pushState(...args);
-  onUrlChange();
-};
+window.addEventListener('touchstart', e => {
+  touchStartY = e.touches[0].clientY;
+}, { passive: true });
 
-window.addEventListener('popstate', onUrlChange);
+window.addEventListener('touchend', e => {
+  if (!isOnReels()) return;
+  const deltaY = touchStartY - e.changedTouches[0].clientY;
+  if (deltaY > 50) deductReel(crypto.randomUUID());
+}, { passive: true });
+
+// Wheel fires many times per gesture — debounce into one charge
+window.addEventListener('wheel', e => {
+  if (!isOnReels() || e.deltaY <= 0) return;
+  clearTimeout(wheelTimer);
+  wheelTimer = setTimeout(() => deductReel(crypto.randomUUID()), 300);
+}, { passive: true });
+
+window.addEventListener('keydown', e => {
+  if (!isOnReels()) return;
+  if (e.key === 'ArrowDown') deductReel(crypto.randomUUID());
+});
 
 // ── Init ───────────────────────────────────────────────────────────
 function init() {
   buildOverlay();
   fetchInitialBalance();
-  onUrlChange();
 }
 
 if (document.body) {
