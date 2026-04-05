@@ -49,8 +49,8 @@ describe('POST /webhook', () => {
     const res = await request(app)
       .post('/webhook')
       .set('stripe-signature', sig)
-      .set('Content-Type', 'application/json')
-      .send(Buffer.from(payload));
+      .set('Content-Type', 'application/octet-stream')
+      .send(payload);
 
     expect(res.status).toBe(200);
     expect(res.body.received).toBe(true);

@@ -46,17 +46,15 @@ async function webhookHandler(req, res) {
   const sig = req.headers['stripe-signature'];
   let event;
 
-  // Unwrap Buffer if supertest/superagent serialized it as {"type":"Buffer","data":[...]}
   let rawBody = req.body;
-  if (Buffer.isBuffer(rawBody)) {
+  // Supertest serializes Buffer as JSON object — unwrap for test compatibility
+  if (!Buffer.isBuffer(rawBody)) {
     try {
       const parsed = JSON.parse(rawBody.toString());
-      if (parsed && parsed.type === 'Buffer' && Array.isArray(parsed.data)) {
+      if (parsed.type === 'Buffer' && Array.isArray(parsed.data)) {
         rawBody = Buffer.from(parsed.data);
       }
-    } catch (_) {
-      // not a serialized Buffer; use rawBody as-is
-    }
+    } catch (_) {}
   }
 
   try {
@@ -69,15 +67,19 @@ async function webhookHandler(req, res) {
     return res.status(400).send(`Webhook Error: ${err.message}`);
   }
 
-  if (event.type === 'checkout.session.completed') {
-    const { uuid, amount_cents } = event.data.object.metadata;
-    await db.query(
-      'UPDATE wallets SET balance_cents = balance_cents + $1 WHERE id = $2',
-      [parseInt(amount_cents, 10), uuid]
-    );
+  try {
+    if (event.type === 'checkout.session.completed') {
+      const { uuid, amount_cents } = event.data.object.metadata;
+      await db.query(
+        'UPDATE wallets SET balance_cents = balance_cents + $1 WHERE id = $2',
+        [parseInt(amount_cents, 10), uuid]
+      );
+    }
+    res.json({ received: true });
+  } catch (err) {
+    console.error('[PaidReels] Webhook DB error:', err.message);
+    res.status(500).json({ error: 'internal error' });
   }
-
-  res.json({ received: true });
 }
 
 router.post('/', checkoutHandler);

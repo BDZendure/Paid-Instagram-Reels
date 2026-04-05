@@ -7,7 +7,7 @@ const app = express();
 // Webhook must receive raw body for Stripe signature verification.
 // Register this route BEFORE express.json() so the body is not parsed.
 const { webhookHandler } = require('./routes/checkout');
-app.post('/webhook', express.raw({ type: 'application/json' }), webhookHandler);
+app.post('/webhook', express.raw({ type: ['application/json', 'application/octet-stream'] }), webhookHandler);
 
 app.use(cors());
 app.use(express.json());
