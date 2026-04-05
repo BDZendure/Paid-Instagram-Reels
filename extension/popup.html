@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Paid Reels</title>
+  <style>
+    @font-face {
+      font-family: 'Orbitron';
+      src: url('assets/fonts/Orbitron-Bold.woff2') format('woff2');
+      font-weight: 700;
+    }
+    @font-face {
+      font-family: 'ShareTechMono';
+      src: url('assets/fonts/ShareTechMono-Regular.woff2') format('woff2');
+    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      width: 220px;
+      background: #0a0a0f;
+      color: #e2e8f0;
+      padding: 20px 16px;
+      font-family: system-ui;
+    }
+    .label {
+      font-family: 'ShareTechMono', monospace;
+      font-size: 8px;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: rgba(255,255,255,0.3);
+      margin-bottom: 4px;
+    }
+    .balance {
+      font-family: 'Orbitron', monospace;
+      font-size: 28px;
+      font-weight: 700;
+      color: #e2e8f0;
+      letter-spacing: 0.02em;
+      margin-bottom: 16px;
+    }
+    .balance.low { color: rgba(255,100,100,0.9); }
+    hr {
+      border: none;
+      border-top: 1px solid rgba(255,255,255,0.07);
+      margin-bottom: 14px;
+    }
+    .topup-label {
+      font-family: 'ShareTechMono', monospace;
+      font-size: 8px;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: rgba(255,255,255,0.25);
+      margin-bottom: 8px;
+    }
+    .amounts { display: flex; gap: 6px; }
+    .amount-btn {
+      flex: 1;
+      font-family: 'Orbitron', monospace;
+      font-size: 11px;
+      font-weight: 700;
+      background: rgba(120,220,255,0.08);
+      border: 1px solid rgba(120,220,255,0.25);
+      color: rgba(120,220,255,0.8);
+      padding: 8px 0;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: all 0.2s;
+      letter-spacing: 0.04em;
+    }
+    .amount-btn:hover {
+      background: rgba(120,220,255,0.18);
+      border-color: rgba(120,220,255,0.5);
+      color: rgba(120,220,255,1);
+    }
+    .status {
+      font-family: 'ShareTechMono', monospace;
+      font-size: 9px;
+      color: rgba(255,255,255,0.2);
+      text-align: center;
+      margin-top: 12px;
+      min-height: 13px;
+      letter-spacing: 0.06em;
+    }
+  </style>
+</head>
+<body>
+  <div class="label">WALLET BALANCE</div>
+  <div class="balance" id="balance">---</div>
+  <hr>
+  <div class="topup-label">ADD FUNDS</div>
+  <div class="amounts">
+    <button class="amount-btn" data-cents="500">$5</button>
+    <button class="amount-btn" data-cents="1000">$10</button>
+    <button class="amount-btn" data-cents="2000">$20</button>
+  </div>
+  <div class="status" id="status"></div>
+  <script src="popup.js"></script>
+</body>
+</html>
