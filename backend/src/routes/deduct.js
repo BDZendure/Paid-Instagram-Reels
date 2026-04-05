@@ -1,12 +1,16 @@
 const express = require('express');
 const db = require('../db');
 
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+
 const router = express.Router();
 
 router.post('/', async (req, res, next) => {
   try {
     const { uuid, slug } = req.body;
     if (!uuid || !slug) return res.status(400).json({ error: 'uuid and slug required' });
+    if (!UUID_RE.test(uuid)) return res.status(400).json({ error: 'invalid uuid' });
+    if (slug.length > 200) return res.status(400).json({ error: 'slug too long' });
 
     const client = await db.connect();
     try {

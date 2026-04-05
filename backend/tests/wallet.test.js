@@ -2,8 +2,8 @@ const request = require('supertest');
 const app = require('../src/index');
 const db = require('../src/db');
 
-const UUID_A = 'a1000000-0000-0000-0000-000000000001';
-const UUID_B = 'a1000000-0000-0000-0000-000000000002';
+const UUID_A = 'a1000000-0000-4000-8000-000000000001';
+const UUID_B = 'a1000000-0000-4000-8000-000000000002';
 
 beforeAll(async () => {
   await db.query('DELETE FROM deductions WHERE uuid IN ($1, $2)', [UUID_A, UUID_B]);
@@ -51,7 +51,7 @@ describe('GET /wallet/balance', () => {
   it('returns 404 for unknown uuid', async () => {
     const res = await request(app)
       .get('/wallet/balance')
-      .query({ uuid: 'a1000000-0000-0000-0000-000000000099' });
+      .query({ uuid: 'a1000000-0000-4000-8000-000000000099' });
     expect(res.status).toBe(404);
   });
 });

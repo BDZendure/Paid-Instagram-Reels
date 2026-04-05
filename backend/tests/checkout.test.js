@@ -4,7 +4,7 @@ const db = require('../src/db');
 const Stripe = require('stripe');
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
-const UUID = 'c3000000-0000-0000-0000-000000000001';
+const UUID = 'c3000000-0000-4000-8000-000000000001';
 
 beforeAll(async () => {
   await db.query('DELETE FROM deductions WHERE uuid = $1', [UUID]);

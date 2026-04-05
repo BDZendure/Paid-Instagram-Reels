@@ -2,7 +2,7 @@ const request = require('supertest');
 const app = require('../src/index');
 const db = require('../src/db');
 
-const UUID = 'b2000000-0000-0000-0000-000000000001';
+const UUID = 'b2000000-0000-4000-8000-000000000001';
 
 beforeAll(async () => {
   await db.query('DELETE FROM deductions WHERE uuid = $1', [UUID]);

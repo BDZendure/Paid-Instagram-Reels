@@ -3,6 +3,8 @@ const express = require('express');
 const Stripe = require('stripe');
 const db = require('../db');
 
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
 const VALID_AMOUNTS = [500, 1000, 2000]; // $5, $10, $20
 
@@ -14,6 +16,7 @@ async function checkoutHandler(req, res, next) {
     if (!uuid || !amount_cents) {
       return res.status(400).json({ error: 'uuid and amount_cents required' });
     }
+    if (!UUID_RE.test(uuid)) return res.status(400).json({ error: 'invalid uuid' });
     if (!VALID_AMOUNTS.includes(Number(amount_cents))) {
       return res.status(400).json({
         error: `amount_cents must be one of: ${VALID_AMOUNTS.join(', ')}`,
@@ -70,10 +73,13 @@ async function webhookHandler(req, res) {
   try {
     if (event.type === 'checkout.session.completed') {
       const { uuid, amount_cents } = event.data.object.metadata;
-      await db.query(
+      const result = await db.query(
         'UPDATE wallets SET balance_cents = balance_cents + $1 WHERE id = $2',
         [parseInt(amount_cents, 10), uuid]
       );
+      if (result.rowCount === 0) {
+        console.warn('[PaidReels] Webhook: wallet not found for uuid', uuid);
+      }
     }
     res.json({ received: true });
   } catch (err) {
