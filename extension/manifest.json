@@ -1,0 +1,28 @@
+{
+  "manifest_version": 3,
+  "name": "Paid Instagram Reels",
+  "version": "1.0.0",
+  "description": "Charges $0.10 per new Instagram Reel to reduce mindless scrolling.",
+  "permissions": ["storage", "tabs"],
+  "host_permissions": ["https://www.instagram.com/*"],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "content_scripts": [
+    {
+      "matches": ["https://www.instagram.com/*"],
+      "js": ["content.js"],
+      "run_at": "document_start"
+    }
+  ],
+  "action": {
+    "default_popup": "popup.html",
+    "default_title": "Paid Reels Wallet"
+  },
+  "web_accessible_resources": [
+    {
+      "resources": ["assets/fonts/*"],
+      "matches": ["https://www.instagram.com/*"]
+    }
+  ]
+}
